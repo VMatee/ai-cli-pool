@@ -280,17 +280,41 @@ def project_lock(project: Path):
 
 
 def latest_claude_session(config: dict, project: Path, slot: str) -> tuple[str, float] | None:
+    """Find this project's transcript, tolerating Windows path-encoding variants.
+
+    Claude's project directory encoding can differ between CLI releases and
+    Windows path formats. Prefer the exact directory; on fallback, verify that
+    the recent transcript's own `cwd` metadata matches the project before use.
+    """
+    root = profile_path(config, "claude", slot) / "projects"
     slug = re.sub(r"[^A-Za-z0-9]", "-", str(project))
-    folder = profile_path(config, "claude", slot) / "projects" / slug
-    if not folder.is_dir():
-        return None
-    candidates = []
-    for path in folder.glob("*.jsonl"):
-        try:
-            candidates.append((str(path), path.stat().st_mtime))
-        except OSError:
-            pass
-    return max(candidates, key=lambda item: item[1]) if candidates else None
+    preferred = root / slug
+    folders = [preferred] if preferred.is_dir() else []
+    if root.is_dir():
+        folders.extend(p for p in root.iterdir() if p.is_dir() and p != preferred)
+    choices: list[tuple[str, float]] = []
+    for folder in folders:
+        for path in folder.glob("*.jsonl"):
+            try:
+                mtime = path.stat().st_mtime
+                if folder == preferred:
+                    choices.append((str(path), mtime))
+                    continue
+                # Claude transcripts contain cwd on JSON lines. Only read a few
+                # records, never print or upload their content.
+                with path.open("r", encoding="utf-8") as source:
+                    for _, line in zip(range(12), source):
+                        try:
+                            entry = json.loads(line)
+                        except (json.JSONDecodeError, ValueError):
+                            continue
+                        cwd = entry.get("cwd") if isinstance(entry, dict) else None
+                        if isinstance(cwd, str) and Path(cwd).resolve() == project:
+                            choices.append((str(path), mtime))
+                            break
+            except (OSError, ValueError):
+                continue
+    return max(choices, key=lambda item: item[1]) if choices else None
 
 
 def latest_codex_session(config: dict, project: Path, slot: str) -> tuple[str, float] | None:
