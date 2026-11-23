@@ -33,7 +33,7 @@ if provider=='claude':
         session=pathlib.Path(args[args.index('--resume')+1])
     else:
         session=dest/(str(uuid.uuid4())+'.jsonl')
-    with session.open('a') as f:f.write(json.dumps({'args':args})+'\n')
+    with session.open('a') as f:f.write(json.dumps({'args':args,'cwd':os.getcwd()})+'\n')
 else:
     dest=folder/'sessions'/'2026'/'11'/'23'
     dest.mkdir(parents=True,exist_ok=True)
