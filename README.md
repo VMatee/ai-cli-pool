@@ -31,14 +31,14 @@ Ubuntu:
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
-curl -fsSL https://chatgpt.com/codex/install.sh | sh
+npm install -g @openai/codex
 ```
 
 Windows PowerShell:
 
 ```powershell
 irm https://claude.ai/install.ps1 | iex
-irm https://chatgpt.com/codex/install.ps1 | iex
+npm install -g @openai/codex
 ```
 
 These are vendor-maintained installers. Review their instructions and trust policies before executing remote installation scripts. Another option for Codex when you already have Node/npm: `npm install -g @openai/codex`.
