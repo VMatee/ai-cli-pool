@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Credentials and account profiles - NEVER COMMIT
+profiles/
+runtime/
+accounts/
+.claude/
+.codex/
+.credentials.json
+auth.json
+*.jsonl
+.env
+.env.*
+config.json
+state/
+*.lock
+
+# Local system and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
